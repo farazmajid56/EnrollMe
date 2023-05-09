@@ -1,0 +1,15 @@
+package com.se.enrollme.repository;
+
+import com.se.enrollme.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    User findByEmail(String email);
+
+    void deleteById(Long id);
+
+    User findByRollNumber(String rollNo);
+
+    User findByEmployeeId(Long id);
+}

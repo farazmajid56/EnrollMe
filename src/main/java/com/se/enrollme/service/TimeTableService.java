@@ -89,6 +89,11 @@ public class TimeTableService {
         return checkClash(timeTables,timeTableDto.getStartTime(),timeTableDto.getEndTime());
     }
 
+    public boolean maxCourseForWeek(TimeTableDto timeTableDto, Long id) {
+        String section = courseRepository.getReferenceById(timeTableDto.getCourseId()).getSection();
+        List<TimeTable> timeTables = timeTableRepository.findByCourse_IdAndTeacher_IdAndCourseSection(timeTableDto.getCourseId(),timeTableDto.getTeacherId(),section);
+        return timeTables.size() >= 2;
+    }
     public List<TimeTable> findByTeacherId(Long id) {
         return timeTableRepository.findByTeacher_Id(id);
     }

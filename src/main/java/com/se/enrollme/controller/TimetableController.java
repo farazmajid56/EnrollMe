@@ -1,6 +1,5 @@
 package com.se.enrollme.controller;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import com.se.enrollme.dto.PersonalizedTTDto;
@@ -18,7 +16,6 @@ import com.se.enrollme.dto.TimeSlot;
 import com.se.enrollme.dto.TimeTableDto;
 import com.se.enrollme.service.TimeTableService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -29,13 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 
-import com.opencsv.CSVWriter;
-import com.opencsv.bean.StatefulBeanToCsv;
-import com.opencsv.bean.StatefulBeanToCsvBuilder;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import com.se.enrollme.constants.Days;
-import com.se.enrollme.dto.CSVTT;
 import com.se.enrollme.model.Course;
 import com.se.enrollme.model.Room;
 import com.se.enrollme.model.Teacher;
@@ -90,7 +81,14 @@ public class TimetableController {
 
         boolean teacherClash = timeTableService.findTeacherClash(timeTableDto,null);
         boolean roomClash = timeTableService.findRoomClash(timeTableDto,null);
+        boolean maxCourseForWeek = timeTableService.maxCourseForWeek(timeTableDto,null);
 
+        if(maxCourseForWeek){
+            result.rejectValue("courseId", null,
+                    "Max 2 classes of course per week");
+
+            return "redirect:/timetable/add?doneTaught";
+        }
         if(teacherClash){
             result.rejectValue("teacherId", null,
                     "This teacher is not free at the given time.");
@@ -181,29 +179,29 @@ public class TimetableController {
 
     }
 
-    @GetMapping("/timetable/download")
-    public void downloadCSV(HttpServletResponse response) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
-        String filename = "timetable.csv";
-
-        response.setContentType("text/csv");
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + filename + "\"");
-
-        //create a csv writer
-        StatefulBeanToCsv<CSVTT> writer = new StatefulBeanToCsvBuilder<CSVTT>(response.getWriter())
-                .withQuotechar(CSVWriter.NO_QUOTE_CHARACTER)
-                .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
-                .withOrderedResults(false)
-                .build();
-
-        List<TimeTable> tt = timeTableService.fetchAll();
-        List<CSVTT> formattedTT = tt.stream().map(t->{
-            return new CSVTT(t.getId(), t.getCourse().getId(),t.getTeacher().getId(),t.getRoom().getId(),t.getStartTime(),t.getEndTime(),t.getDay());
-        }).toList();
-
-        //write to csv file
-        writer.write(formattedTT);
-    }
+//    @GetMapping("/timetable/download")
+//    public void downloadCSV(HttpServletResponse response) throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
+//        String filename = "timetable.csv";
+//
+//        response.setContentType("text/csv");
+//        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+//                "attachment; filename=\"" + filename + "\"");
+//
+//        //create a csv writer
+//        StatefulBeanToCsv<CSVTT> writer = new StatefulBeanToCsvBuilder<CSVTT>(response.getWriter())
+//                .withQuotechar(CSVWriter.NO_QUOTE_CHARACTER)
+//                .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+//                .withOrderedResults(false)
+//                .build();
+//
+//        List<TimeTable> tt = timeTableService.fetchAll();
+//        List<CSVTT> formattedTT = tt.stream().map(t->{
+//            return new CSVTT(t.getId(), t.getCourse().getId(),t.getTeacher().getId(),t.getRoom().getId(),t.getStartTime(),t.getEndTime(),t.getDay());
+//        }).toList();
+//
+//        //write to csv file
+//        writer.write(formattedTT);
+//    }
 
     @GetMapping("/timetable/personalized")
     public String viewPersonalizedTimetable(Model model) {

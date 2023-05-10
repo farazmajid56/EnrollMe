@@ -115,7 +115,7 @@ public class RegistrationController {
         else if (hasFacultyRole) {
 
             User user = userService.findUserByEmail(userEmail);
-            List<TimeTable> facultyTT = timeTableService.findByTeacherId(user.getEmployeeId());
+            List<TimeTable> facultyTT = timeTableService.findByTeacherId(user.getId());
 
             model.addAttribute("timeTables", facultyTT);
             model.addAttribute("title","My TimeTable");

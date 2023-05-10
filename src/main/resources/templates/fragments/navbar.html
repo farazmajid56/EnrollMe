@@ -86,6 +86,14 @@
                                     >University Timetable</a
                                 >
                             </li>
+                            <li  sec:authorize="isAnonymous()">
+                                <a
+                                        th:href="@{/timetable}"
+                                        th:classappend="${#httpServletRequest.getRequestURI() == '/timetable' ? 'text-primary-700':''}"
+                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                                >University Timetable</a
+                                >
+                            </li>
                             <li  sec:authorize="hasRole('STUDENT')">
                                 <a
                                         th:href="@{/my-uni-timetable}"
